@@ -25,6 +25,8 @@ import {
     where,
     updateDoc
   } from "firebase/firestore";
+  import moment from 'moment';
+  import { Badge } from 'react-native-elements'
 
 const screenWidth = Dimensions.get("window").width
 const screenHeight = Dimensions.get("window").height
@@ -42,7 +44,6 @@ function AddUserPage(props) {
     const [image, setImage] = useState(null);
     const [select,setSelect] = useState('');
     const scrollViewRef = useRef();
-    console.log("props.route.params.id", )
 
     useLayoutEffect(()=>{
         props.navigation.setOptions({
@@ -129,10 +130,10 @@ function AddUserPage(props) {
             ...messages
         }
         if(!data?.seen){
-            data.seen = new Date().getTime()
+            data.seen = new Date()
         }
         if(!data?.delivered){
-            data.delivered = new Date().getTime()
+            data.delivered = new Date()
         }
         const responce = await setDoc(Delivered, data ,{ merge: true })
     }
@@ -149,7 +150,7 @@ function AddUserPage(props) {
                 sendBy:firebase.auth().currentUser.uid,
                 readBy:true,
                 readTo:false,
-                sendAt:new Date().getTime(),
+                sendAt:new Date(),
                 type:'text',
                 delivered:null,
                 seen:null
@@ -230,7 +231,7 @@ function AddUserPage(props) {
             sendBy:firebase.auth().currentUser.uid,
             readBy:true,
             readTo:false,
-            sendAt:new Date().getTime(),
+            sendAt:new Date(),
             type:type,
             image:childPath
         }
@@ -276,8 +277,19 @@ function AddUserPage(props) {
             { text: "OK", onPress: () =>  select?.type==='text'?deleteMessage(props.route.params.id,select?.id):deleteMessageImage(props?.route?.params?.id,select?.id,select?.image) }
         ]
         );
-    console.log("firebase.firestore.FieldValue.serverTimestamp()", firebase.firestore)
     const ChatListItem = ({item, index})=>{
+        const UserMessages = item?.sendBy === firebase.auth().currentUser.uid;
+        const ColorBox = UserMessages ? "primary.500" : "grey.200";
+        let CommonStyle = ""
+        if(item.type==="text"){
+            CommonStyle =  UserMessages ? styles?.UserMessagesBox : styles?.MessagesBox
+        }
+        if(item.type==="image"){
+            CommonStyle =  UserMessages ? styles?.UserImageBox : styles?.ImageBox
+        }
+        if(item.type==="video"){
+            CommonStyle =  UserMessages ? styles?.UserVideoBox : styles?.VideoBox
+        }
         return(
              <View
                 onLayout={(event)=>{
@@ -285,63 +297,30 @@ function AddUserPage(props) {
                 }}
                 key={index.toString()}
              >
-                {item.type==="text"?
-                    item?.sendBy===firebase.auth().currentUser.uid?
-                        <HStack m={2} alignItems={'center'} justifyContent={"flex-end"}>
-                            <TouchableOpacity onLongPress={()=>setSelect(item)}>
-                                <Box   borderTopRightRadius={30} borderBottomLeftRadius={30} borderTopLeftRadius={30} paddingX={6} paddingY={3} bg={"purple.500"}>
-                                    <Text color={"white"} fontSize={15}>{item.message}</Text>
-                                </Box>
-                            </TouchableOpacity>
-                        </HStack>
-                    :
-                        <HStack m={2}>
-                            <TouchableOpacity >
-
-                            <Box  borderTopRightRadius={30} borderBottomRightRadius={30} borderTopLeftRadius={30} paddingX={6} paddingY={3} bg={"purple.200"}>
-                                <Text color={"black"} fontSize={15}>{item.message}</Text>
-                            </Box>
-                            </TouchableOpacity>
-                        </HStack>
-                :
-                item.type==="image"?
-                    item?.sendBy===firebase.auth().currentUser.uid?
-                        <HStack  m={2}  alignItems={'center'} justifyContent={"flex-end"}>
-                            <TouchableOpacity onLongPress={()=>setSelect(item)}>
-                                <Image alt={".."} source={{uri:item?.message}} style={{height:260, resizeMode: "center", width:screenWidth*0.5, borderRadius:15, shadowColor: '#666',
-                                    shadowOffset: { width: 3, height: 5 },
-                                    shadowOpacity: 3,
-                                    shadowRadius: 10,  
-                                    elevation: 5}}/>
-                            </TouchableOpacity>
-                        </HStack>
-                    :
-                        <HStack m={2}>
-                            <TouchableOpacity >
-                                <Image alt={".."} source={{uri:item?.message}} style={{height:260, resizeMode: "center", width:screenWidth*0.5, borderRadius:15, shadowColor: '#666',
-                                    shadowOffset: { width: 3, height: 5 },
-                                    shadowOpacity: 3,
-                                    shadowRadius: 10,  
-                                    elevation: 5}}/>
-                            </TouchableOpacity>
-                        </HStack>
-                :item.type==="video"&&
-                item?.sendBy===firebase.auth().currentUser.uid?
-                        <HStack  m={2}  alignItems={'center'} justifyContent={"flex-end"}>
-                            <TouchableOpacity onLongPress={()=>setSelect(item)}>
-                            <Video
-                            style={styles.video}
-                            source={{
-                            uri: item?.message,
-                            }}
-                            useNativeControls
-                            resizeMode="contain"
-                        />
-                            </TouchableOpacity>
-                        </HStack>
-                :
-                        <HStack m={2}>
-                            <TouchableOpacity >
+                <HStack style={UserMessages? styles?.UserMessagesFlex: styles?.MessagesFlex}>
+                    <TouchableOpacity onLongPress={()=> UserMessages && setSelect(item)}>
+                        <Box style={CommonStyle} bg={ColorBox}>
+                        {item.type==="text" &&(
+                            <React.Fragment>
+                                <Text color={UserMessages ? "white" : "#212529"} fontSize={14}>{item.message}</Text>
+                            </React.Fragment>
+                        )}
+                        {item.type==="image" &&( 
+                            item?.sendBy===firebase.auth().currentUser.uid?
+                            <Image alt={".."} source={{uri:item?.message}} style={{height:260, resizeMode: "center", width:screenWidth*0.5, borderRadius:15, shadowColor: '#666',
+                                shadowOffset: { width: 3, height: 5 },
+                                shadowOpacity: 3,
+                                shadowRadius: 10,  
+                                elevation: 5}}/>
+                            :
+                            <Image alt={".."} source={{uri:item?.message}} style={{height:260, resizeMode: "center", width:screenWidth*0.5, borderRadius:15, shadowColor: '#666',
+                                shadowOffset: { width: 3, height: 5 },
+                                shadowOpacity: 3,
+                                shadowRadius: 10,  
+                                elevation: 5}}/>
+                        )}
+                        {item.type==="video"&&
+                            (item?.sendBy===firebase.auth().currentUser.uid?
                             <Video
                                 style={styles.video}
                                 source={{
@@ -350,18 +329,48 @@ function AddUserPage(props) {
                                 useNativeControls
                                 resizeMode="contain"
                             />
-                            </TouchableOpacity>
-                        </HStack>
-                }
+                            :
+                            <Video
+                                style={styles.video}
+                                source={{
+                                uri: item?.message,
+                                }}
+                                useNativeControls
+                                resizeMode="contain"
+                            />)
+                        }
+                        <Text style={{
+                                    position:"absolute",
+                                    right:5,
+                                    bottom:5,
+                                    width:35
+                                }} numberOfLines={1} color={UserMessages ? "white" : "#212529"} fontSize={10}>{moment(item?.sendAt.toDate()).utc().local().format("h:mm A")}</Text>
+                        <View
+                                    bg={ColorBox}
+                                    style={UserMessages ? styles?.UserMessagesLeftArrow : styles?.MessagesLeftArrow}
+                                    borderTopColor={ColorBox}
+                                />
+                            </Box>
+                    </TouchableOpacity>
+                </HStack>
             </View>
         )
     }
     return (
         <SafeAreaView style={{ flex:1}}>
-            <View style={{ height:"100%", paddingBottom:70}}>
+            <View style={{ height:"100%", paddingBottom:70, display:"flex", justifyContent:"center"}}>
                 <ScrollView
                     ref={scrollViewRef}
                     onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
+                    scrollEnabled={true}
+                    style={{
+                        height:screenHeight,
+                    }}
+                    contentContainerStyle={{
+                        display:"flex",
+                        flexDirection:"column",
+                        justifyContent:"flex-end",
+                    }}
                 >
                 {chatList?.map((item, index)=>ChatListItem({item:item, index:index}))}
                     {/* <FlatList
@@ -397,7 +406,116 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         width: screenWidth*0.5,
         height: 200,
-      },
+    },
+    UserMessagesFlex:{
+        marginTop:5,
+        marginBottom:6,
+        paddingLeft:15,
+        paddingRight:15,
+        alignItems:"center",
+        justifyContent:"flex-end"
+    },
+    MessagesFlex:{
+        marginTop:5,
+        marginBottom:6,
+        paddingLeft:15,
+        paddingRight:15,
+        alignItems:"center",
+        justifyContent:"flex-start"
+    },
+    UserMessagesBox:{
+        paddingTop:8,
+        paddingBottom:8,
+        paddingRight:50,
+        paddingLeft:10,
+        position:"relative",
+        borderBottomRightRadius:8,
+        borderBottomLeftRadius:8,
+        borderTopLeftRadius:8
+    },
+    MessagesBox:{
+        paddingTop:8,
+        paddingBottom:8,
+        paddingRight:50,
+        paddingLeft:10,
+        position:"relative",
+        borderBottomRightRadius:8,
+        borderBottomLeftRadius:8,
+        borderTopRightRadius:0
+    },
+    MessagesLeftArrow:{ 
+        width: 0,
+        height: 0,
+        backgroundColor: 'transparent',
+        borderStyle: 'solid',
+        borderTopWidth: 10,
+        borderRightWidth: 0,
+        borderBottomWidth: 10,
+        borderLeftWidth: 15,
+        borderRightColor: 'transparent',
+        borderBottomColor: 'transparent',
+        borderLeftColor: 'transparent',
+        position:"absolute",
+        top:0,
+        left:-10
+    },
+    UserMessagesLeftArrow:{ 
+        width: 0,
+        height: 0,
+        backgroundColor: 'transparent',
+        borderStyle: 'solid',
+        borderTopWidth: 10,
+        borderRightWidth: 15,
+        borderBottomWidth: 10,
+        borderLeftWidth: 0,
+        borderRightColor: 'transparent',
+        borderBottomColor: 'transparent',
+        borderLeftColor: 'transparent',
+        position:"absolute",
+        top:0,
+        right:-10
+    },
+    UserImageBox:{
+        paddingTop:8,
+        paddingBottom:20,
+        paddingRight:8,
+        paddingLeft:8,
+        position:"relative",
+        borderBottomRightRadius:8,
+        borderBottomLeftRadius:8,
+        borderTopRightRadius:0
+    },
+    ImageBox:{
+        paddingTop:10,
+        paddingBottom:20,
+        paddingRight:10,
+        paddingLeft:10,
+        position:"relative",
+        borderBottomRightRadius:8,
+        borderBottomLeftRadius:8,
+        borderTopleftRadius:8,
+        borderTopRightRadius:0
+    },
+    UserVideoBox:{
+        paddingTop:8,
+        paddingBottom:20,
+        paddingRight:8,
+        paddingLeft:8,
+        position:"relative",
+        borderBottomRightRadius:8,
+        borderBottomLeftRadius:8,
+        borderTopLeftRadius:8
+    },
+    VideoBox:{
+        paddingTop:8,
+        paddingBottom:20,
+        paddingRight:8,
+        paddingLeft:8,
+        position:"relative",
+        borderBottomRightRadius:8,
+        borderBottomLeftRadius:8,
+        borderTopRightRadius:0
+    }
 });
 
 const mapStateToProps = (store) => ({})

@@ -33,7 +33,7 @@ function AddUserPage(props) {
             <FlatList
                 keyExtractor={(item, index) => index.toString()}
                 data={props?.friends?.sort(( a, b )=> {
-                        return new Date( b?.last_message?.sendAt) - new Date( a?.last_message?.sendAt)
+                        return new Date( b?.last_messages?.sendAt?.toDate()) - new Date( a?.last_messages?.sendAt?.toDate())
                 })}
                 renderItem={({item})=>(
                     <FriendsList navigation={props.navigation} users={item} />

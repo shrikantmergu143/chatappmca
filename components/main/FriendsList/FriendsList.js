@@ -36,7 +36,6 @@ function AddUserPage(props) {
     const UsersSeen = props?.users[`seen${props?.users?.uid}`];
     const UsersSeenDelivered = props?.users[props?.users?.uid];
     const Delivered = props?.users[Users_id];
-    console.log("props", UnSeen)
     // useEffect(()=>{
     //     firebase.firestore()
     //     .collection("friends")
@@ -65,7 +64,7 @@ function AddUserPage(props) {
         //     DeliveredMessages?.map(async(item)=>{
         //         const Delivered = doc(db, item);
         //         await setDoc(Delivered, {
-        //             delivered:new Date().getTime()
+        //             delivered:new Date()
         //         },{ merge: true });
         //     })
         //     db.collection("friends").doc(props?.users?.id).update({[Users_id]:[]})

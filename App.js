@@ -29,6 +29,9 @@ export default function App() {
       amber: {
         400: '#d97706',
       },
+      grey:{
+        200:"#e1e4f5"
+      }
     },
     config: {
       // Changing initialColorMode to 'dark'
